@@ -1,6 +1,8 @@
 import numpy as np
 import random as rnd
-
+from functools import reduce
+from fractions import Fraction, gcd
+import math
 # Doomsday Fuel
 
 
@@ -8,26 +10,98 @@ def solution(m):
     m, trans = normalise_matrix(m)
     absorbed = len(m) - len(trans)
     Q, R, I = get_q_r_i(m, trans, absorbed)
-    I_arr = np.array(I)
-    Q_arr = np.array(Q)
-    Q_arr = np.resize(Q_arr, I_arr.shape)
-    i_minus_q = np.subtract(I_arr,Q_arr)
+    i_minus_q = subtract(I, Q)
+    f = np.linalg.inv(i_minus_q)
+    fr = mult(f, R)
 
-    print("\n")
-    for r in i_minus_q:
-        print(r)
-
-    print("\n")
+    print("R:")
     for r in R:
         print(r)
+    fr = fr[0]
+    for r in range(len(fr)):
+        r = Fraction(r)
 
-    print("\n")
-    for r in Q:
-        print(r)
+    lcm = abs(reduce(gcd, fr))
 
-    print("\n")
-    for r in I:
-        print(r)
+    res = [abs(Fraction(r/lcm)) for r in fr]
+    res.append(1/lcm)
+
+    res = [int(r) for r in res]
+
+    print("res:")
+    for r in res:
+        r = abs(r)
+    print(res)
+    print("-------------------")
+
+
+def subtract(I, Q):
+    rows = len(I)
+    cols = len(I[0])
+    res = []
+    for i in range(rows):
+        res.append([])
+        for j in range(cols):
+            res[i].append(I[i][j]-Q[i][j])
+
+    return res
+
+
+def transpose(m):
+    cols = m[0]
+    rows = m
+    res = []
+    for c in range(len(cols)):
+        res.append(m[r][c] for r in range(len(rows)))
+    return res
+
+
+def mult(A, B):
+    rows_A = len(A)
+    cols_A = len(A[0])
+    rows_B = len(B)
+    cols_B = len(B[0])
+
+    if cols_A != rows_B:
+        return
+
+    # Create the result matrix
+    # Dimensions would be rows_A x cols_B
+    C = [[0 for row in range(cols_B)] for col in range(rows_A)]
+
+    for i in range(rows_A):
+        for j in range(cols_B):
+            for k in range(cols_A):
+                C[i][j] += A[i][k] * B[k][j]
+    print(C)
+    return C
+
+
+def rotate_matrix(m):
+    cols = []
+    for c in range(len(m[0])):
+        temp = []
+        for r in range(len(m)):
+            temp.append(m[r][c])
+        cols.append(temp)
+    return cols
+
+
+def dot_product(m1, m2):
+    dot_prod = 0
+    for x, y in zip(m1, m2):
+        dot_prod += x * y
+    return dot_prod
+
+
+def get_abs(m):
+    absorbing_states = []
+    for i, row in enumerate(m):
+        row = m[i]
+        if sum(row) == 0:
+            absorbing_states.append(i)
+
+    return absorbing_states
 
 
 def get_q_r_i(m, trans, absorbed):
@@ -46,9 +120,9 @@ def get_q_r_i(m, trans, absorbed):
         R.append(rRow)
 
     I = []
-    for i in range(absorbed):
+    for i in range(len(Q)):
         temp = []
-        for j in range(absorbed):
+        for j in range(len(Q)):
             if j == i:
                 temp.append(1)
             else:
@@ -84,16 +158,27 @@ def normalise_matrix(m):
 
         normalised_matrix.append(new_row)
 
-    for row in normalised_matrix:
-        print(row)
+    # for row in normalised_matrix:
+    #     print(row)
     return normalised_matrix, transient_states
 
 
-solution([
-    [0, 1, 0, 0, 1],
-    [4, 0, 3, 2, 0],
+m = [
+    [0, 2, 1, 0, 0],
+    [0, 0, 0, 3, 4],
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0],
-])
+    [0, 0, 0, 0, 0]
+]
+
+n = [
+    [0, 1, 0, 0, 0, 1],
+    [4, 0, 0, 3, 2, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]
+
+solution(m)
+solution(n)
