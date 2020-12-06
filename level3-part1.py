@@ -1,8 +1,8 @@
 import numpy as np
 import random as rnd
 from functools import reduce
-from fractions import Fraction, gcd
-import math
+from fractions import Fraction as frac, gcd
+
 # Doomsday Fuel
 
 
@@ -11,27 +11,25 @@ def solution(m):
     absorbed = len(m) - len(trans)
     Q, R, I = get_q_r_i(m, trans, absorbed)
     i_minus_q = subtract(I, Q)
-    f = np.linalg.inv(i_minus_q)
-    fr = mult(f, R)
+    f = inverse(i_minus_q)
+    fra = np.matmul(f, R)
 
-    print("R:")
-    for r in R:
-        print(r)
-    fr = fr[0]
-    for r in range(len(fr)):
-        r = Fraction(r)
+    print(Q)
+    # lcm = np.lcm.reduce([fr.denominator for fr in fra])
 
-    lcm = abs(reduce(gcd, fr))
-
-    res = [abs(Fraction(r/lcm)) for r in fr]
-    res.append(1/lcm)
-
-    res = [int(r) for r in res]
+    # vals = [int(fr.numerator * lcm / fr.denominator) for fr in fra]
+    # vals.append(lcm)
+    # # print(vals)
+    # lcm = abs(reduce(gcd, fra))
+    
+    # print(lcm)
+    res = []
+    # print(lcm)
 
     print("res:")
     for r in res:
         r = abs(r)
-    print(res)
+    # print(res)
     print("-------------------")
 
 
@@ -43,61 +41,78 @@ def subtract(I, Q):
         res.append([])
         for j in range(cols):
             res[i].append(I[i][j]-Q[i][j])
-
     return res
 
 
 def transpose(m):
-    cols = m[0]
-    rows = m
-    res = []
-    for c in range(len(cols)):
-        res.append(m[r][c] for r in range(len(rows)))
-    return res
+    t = []
+    for r in range(len(m)):
+        tRow = []
+        for c in range(len(m[r])):
+            if c == r:
+                tRow.append(m[r][c])
+            else:
+                tRow.append(m[c][r])
+        t.append(tRow)
+    return t
 
 
-def mult(A, B):
-    rows_A = len(A)
-    cols_A = len(A[0])
-    rows_B = len(B)
-    cols_B = len(B[0])
+def get_determinant(m):
+    if len(m) == 2:
+        return m[0][0]*m[1][1]-m[0][1]*m[1][0]
 
-    if cols_A != rows_B:
-        return
-
-    # Create the result matrix
-    # Dimensions would be rows_A x cols_B
-    C = [[0 for row in range(cols_B)] for col in range(rows_A)]
-
-    for i in range(rows_A):
-        for j in range(cols_B):
-            for k in range(cols_A):
-                C[i][j] += A[i][k] * B[k][j]
-    print(C)
-    return C
+    det = 0
+    for col in range(len(m)):
+        sign = (-1) ** col
+        det += (sign * m[0][col] * get_determinant(get_cofactor(m, 0, col)))
+    return det
 
 
-def rotate_matrix(m):
-    cols = []
-    for c in range(len(m[0])):
-        temp = []
-        for r in range(len(m)):
-            temp.append(m[r][c])
-        cols.append(temp)
-    return cols
+def get_cofactor(m, a, b):
+    return [row[: b] + row[b+1:] for row in (m[: a] + m[a+1:])]
 
 
-def dot_product(m1, m2):
-    dot_prod = 0
-    for x, y in zip(m1, m2):
-        dot_prod += x * y
-    return dot_prod
+def inverse(m):
+    d=get_determinant(m)
+
+
+    # special case for 2x2 matrix:
+    if len(m) == 2:
+        return [[m[1][1]/d, -1*m[0][1]/d],
+                [-1*m[1][0]/d, m[0][0]/d]]
+
+    # find matrix of cofactors
+    cofactors=[]
+    for r in range(len(m)):
+        cofactorRow=[]
+        for c in range(len(m)):
+            minor=get_cofactor(m, r, c)
+            cofactorRow.append(((-1)**(r+c)) * get_determinant(minor))
+        cofactors.append(cofactorRow)
+    cofactors=transpose(cofactors)
+    for r in range(len(cofactors)):
+        for c in range(len(cofactors)):
+            cofactors[r][c]=cofactors[r][c]/d
+    return cofactors
+
+
+def get_i(m):
+    I=[]
+    for i in range(m):
+        temp=[]
+        for j in range(m):
+            if j == i:
+                temp.append(frac(1))
+            else:
+                temp.append(frac(0))
+        I.append(temp)
+    return I
 
 
 def get_abs(m):
-    absorbing_states = []
+    absorbing_states=[]
     for i, row in enumerate(m):
-        row = m[i]
+        row=m[i]
         if sum(row) == 0:
             absorbing_states.append(i)
 
@@ -105,65 +120,60 @@ def get_abs(m):
 
 
 def get_q_r_i(m, trans, absorbed):
-    Q = []
+    Q=[]
     for row in range(len(trans)):
-        q_row = []
+        q_row=[]
         for col in range(len(trans)):
             q_row.append(m[row][col])
+        print(q_row)
         Q.append(q_row)
 
-    R = []
+    R=[]
     for row in range(len(trans)):
-        rRow = []
+        rRow=[]
         for col in range(len(trans), len(m[row])):
             rRow.append(m[row][col])
         R.append(rRow)
-
-    I = []
-    for i in range(len(Q)):
-        temp = []
-        for j in range(len(Q)):
-            if j == i:
-                temp.append(1)
-            else:
-                temp.append(0)
-        I.append(temp)
+    I=get_i(len(Q))
     return Q, R, I
 
 
 def normalise_matrix(m):
-    normalised_matrix = []
-    transient_states = []
-    absorbing_states = []
+    normalised_matrix=[]
+    transient_states=[]
+    absorbing_states=[]
 
     for i in range(len(m)):
-        row = m[i]
-        new_row = []
+        row=m[i]
+        new_row=[]
 
         # Absorbing states
         if sum(row) == 0:
             absorbing_states.append(i)
 
             for col in row:
-                new_row.append(0)
+                new_row.append(frac(0))
 
             # Add probability of turning into itself (absorbing)
-            new_row[i-1] = 1
+            new_row[i-1]=1
 
         # Transient states
         else:
+            denom = sum(row)
+            if not denom == 0:
+                for i in row:
+                    new_row.append(frac(row[i], denom))
+            else:
+                for col in row:
+                    new_row.append(frac(0))
             transient_states.append(i)
-            for col in row:
-                new_row.append(col / sum(row))
 
         normalised_matrix.append(new_row)
 
-    # for row in normalised_matrix:
-    #     print(row)
     return normalised_matrix, transient_states
 
 
-m = [
+m=[
     [0, 2, 1, 0, 0],
     [0, 0, 0, 3, 4],
     [0, 0, 0, 0, 0],
@@ -171,7 +181,7 @@ m = [
     [0, 0, 0, 0, 0]
 ]
 
-n = [
+n=[
     [0, 1, 0, 0, 0, 1],
     [4, 0, 0, 3, 2, 0],
     [0, 0, 0, 0, 0, 0],
