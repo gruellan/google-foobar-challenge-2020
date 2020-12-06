@@ -5,58 +5,95 @@ import random as rnd
 
 
 def solution(m):
-    normalise_matrix(m)
-    transient_states, absorbing_states = num_transient_and_absorbing(m)
-#     get_r(m, transient_states)
+    m, trans = normalise_matrix(m)
+    absorbed = len(m) - len(trans)
+    Q, R, I = get_q_r_i(m, trans, absorbed)
+    I_arr = np.array(I)
+    Q_arr = np.array(Q)
+    Q_arr = np.resize(Q_arr, I_arr.shape)
+    i_minus_q = np.subtract(I_arr,Q_arr)
+
+    print("\n")
+    for r in i_minus_q:
+        print(r)
+
+    print("\n")
+    for r in R:
+        print(r)
+
+    print("\n")
+    for r in Q:
+        print(r)
+
+    print("\n")
+    for r in I:
+        print(r)
 
 
-# def get_r(m, transient):
-#     r = []
-#     for i in range(transient):
-#         row = []
-#         for col in range(transient, len(m[row])):
-#             row.append(m[row][col])
-#         r.append(row)
-#     for row in r:
-#         print(r)
-#     return r
+def get_q_r_i(m, trans, absorbed):
+    Q = []
+    for row in range(len(trans)):
+        q_row = []
+        for col in range(len(trans)):
+            q_row.append(m[row][col])
+        Q.append(q_row)
 
+    R = []
+    for row in range(len(trans)):
+        rRow = []
+        for col in range(len(trans), len(m[row])):
+            rRow.append(m[row][col])
+        R.append(rRow)
 
-def num_transient_and_absorbing(m):
-    transient_states = []
-    absorbing_states = []
-
-    matrix_len = len(m)
-    for i, val in enumerate(m):
-        if m[i][i] != 1:
-            transient_states.append(i)
-        else:
-            absorbing_states.append(i)
-    return transient_states, absorbing_states
+    I = []
+    for i in range(absorbed):
+        temp = []
+        for j in range(absorbed):
+            if j == i:
+                temp.append(1)
+            else:
+                temp.append(0)
+        I.append(temp)
+    return Q, R, I
 
 
 def normalise_matrix(m):
-    transient_states, absorbing_states = num_transient_and_absorbing(m)
-
-    normalised_state_order = list(absorbing_states + transient_states)
-
     normalised_matrix = []
-    count = 0
-    for i in normalised_state_order:
-        normalised_matrix.append([])
-        for j in normalised_state_order:
-            normalised_matrix[count].append(m[i][j])
-        count += 1
+    transient_states = []
+    absorbing_states = []
 
-    for row in m:
-        print(m)
+    for i in range(len(m)):
+        row = m[i]
+        new_row = []
+
+        # Absorbing states
+        if sum(row) == 0:
+            absorbing_states.append(i)
+
+            for col in row:
+                new_row.append(0)
+
+            # Add probability of turning into itself (absorbing)
+            new_row[i-1] = 1
+
+        # Transient states
+        else:
+            transient_states.append(i)
+            for col in row:
+                new_row.append(col / sum(row))
+
+        normalised_matrix.append(new_row)
+
     for row in normalised_matrix:
         print(row)
+    return normalised_matrix, transient_states
 
 
-print(solution([
+solution([
     [0, 1, 0, 0, 1],
     [4, 0, 3, 2, 0],
     [0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0]]))
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+])
