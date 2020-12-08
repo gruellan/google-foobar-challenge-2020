@@ -1,48 +1,88 @@
-import numpy as np
-import random as rnd
+from fractions import Fraction as frac
+from fractions import gcd
 from functools import reduce
-from fractions import Fraction as frac, gcd
-
-# Doomsday Fuel
-
+import numpy as np
 
 def solution(m):
-    m, trans = normalise_matrix(m)
-    absorbed = len(m) - len(trans)
-    Q, R, I = get_q_r_i(m, trans, absorbed)
-    i_minus_q = subtract(I, Q)
-    f = inverse(i_minus_q)
-    fra = np.matmul(f, R)
+    # Get variables for calculation
+    m, trans, absorbing = normalise_matrix(m)
+    Q, R, I = get_q_r_i(m)
 
-    print(Q)
-    # lcm = np.lcm.reduce([fr.denominator for fr in fra])
+    # Perform calculations
+    I_minus_Q = subtract(I, Q)
+    F = inv(I_minus_Q)
+    FR = np.matmul(F, R)
 
-    # vals = [int(fr.numerator * lcm / fr.denominator) for fr in fra]
-    # vals.append(lcm)
-    # # print(vals)
-    # lcm = abs(reduce(gcd, fra))
-    
-    # print(lcm)
-    res = []
-    # print(lcm)
+    # Find lcm
+    FR = FR[0]
+    lcm = int(1 / reduce(gcd, FR))
 
-    print("res:")
-    for r in res:
-        r = abs(r)
-    # print(res)
-    print("-------------------")
+    # Add probabilities
+    res = [int(x.numerator * lcm / x.denominator) for x in FR]
+
+    # Add lcm
+    res.append(lcm)
+
+    return res
 
 
-def subtract(I, Q):
-    rows = len(I)
-    cols = len(I[0])
+def normalise_matrix(m):
+    trans = []
+    absorbing = []
+    for row in m:
+        denom = sum(row)
+        if denom == 0:
+            absorbing.append(row)
+            for i in range(len(row)):
+                row[i] = frac(0)
+
+        else:
+            trans.append(row)
+            for i in range(len(row)):
+                row[i] = frac(row[i], denom)
+
+    return m, trans, absorbing
+
+def get_q_r_i(m):
+    Q = R = []
+    for i in range(len(m)):
+        if sum(m[i]) != 0:
+            row = []
+            for k in range(len(m[i])):
+                if sum(m[k]) != 0:
+                    row.append(m[i][k])
+            Q.append(row)
+
+    R = []
+    for i in range(len(m)):
+        if sum(m[i]) != 0:
+            row = []
+            for j in range(len(m[0])):
+                if sum(m[j]) == 0:
+                    row.append(m[i][j])
+            R.append(row)
+
+    I = []
+    for i in range(len(Q)):
+        temp = []
+        for j in range(len(Q)):
+            if j == i:
+                temp.append(frac(1))
+            else:
+                temp.append(frac(0))
+        I.append(temp)
+    return Q, R, I
+
+
+def subtract(a, b):
+    rows = len(a)
+    cols = len(a[0])
     res = []
     for i in range(rows):
         res.append([])
         for j in range(cols):
-            res[i].append(I[i][j]-Q[i][j])
+            res[i].append(a[i][j] - b[i][j])
     return res
-
 
 def transpose(m):
     t = []
@@ -54,8 +94,7 @@ def transpose(m):
             else:
                 tRow.append(m[c][r])
         t.append(tRow)
-    return t
-
+    return t 
 
 def get_determinant(m):
     if len(m) == 2:
@@ -72,108 +111,27 @@ def get_cofactor(m, a, b):
     return [row[: b] + row[b+1:] for row in (m[: a] + m[a+1:])]
 
 
-def inverse(m):
+def inv(m):
     d=get_determinant(m)
 
-
-    # special case for 2x2 matrix:
     if len(m) == 2:
         return [[m[1][1]/d, -1*m[0][1]/d],
                 [-1*m[1][0]/d, m[0][0]/d]]
-
-    # find matrix of cofactors
     cofactors=[]
     for r in range(len(m)):
-        cofactorRow=[]
+        row=[]
         for c in range(len(m)):
             minor=get_cofactor(m, r, c)
-            cofactorRow.append(((-1)**(r+c)) * get_determinant(minor))
-        cofactors.append(cofactorRow)
+            row.append(((-1)**(r+c)) * get_determinant(minor))
+        cofactors.append(row)
     cofactors=transpose(cofactors)
+
     for r in range(len(cofactors)):
         for c in range(len(cofactors)):
             cofactors[r][c]=cofactors[r][c]/d
     return cofactors
 
-
-def get_i(m):
-    I=[]
-    for i in range(m):
-        temp=[]
-        for j in range(m):
-            if j == i:
-                temp.append(frac(1))
-            else:
-                temp.append(frac(0))
-        I.append(temp)
-    return I
-
-
-def get_abs(m):
-    absorbing_states=[]
-    for i, row in enumerate(m):
-        row=m[i]
-        if sum(row) == 0:
-            absorbing_states.append(i)
-
-    return absorbing_states
-
-
-def get_q_r_i(m, trans, absorbed):
-    Q=[]
-    for row in range(len(trans)):
-        q_row=[]
-        for col in range(len(trans)):
-            q_row.append(m[row][col])
-        print(q_row)
-        Q.append(q_row)
-
-    R=[]
-    for row in range(len(trans)):
-        rRow=[]
-        for col in range(len(trans), len(m[row])):
-            rRow.append(m[row][col])
-        R.append(rRow)
-    I=get_i(len(Q))
-    return Q, R, I
-
-
-def normalise_matrix(m):
-    normalised_matrix=[]
-    transient_states=[]
-    absorbing_states=[]
-
-    for i in range(len(m)):
-        row=m[i]
-        new_row=[]
-
-        # Absorbing states
-        if sum(row) == 0:
-            absorbing_states.append(i)
-
-            for col in row:
-                new_row.append(frac(0))
-
-            # Add probability of turning into itself (absorbing)
-            new_row[i-1]=1
-
-        # Transient states
-        else:
-            denom = sum(row)
-            if not denom == 0:
-                for i in row:
-                    new_row.append(frac(row[i], denom))
-            else:
-                for col in row:
-                    new_row.append(frac(0))
-            transient_states.append(i)
-
-        normalised_matrix.append(new_row)
-
-    return normalised_matrix, transient_states
-
-
-m=[
+m = [
     [0, 2, 1, 0, 0],
     [0, 0, 0, 3, 4],
     [0, 0, 0, 0, 0],
@@ -181,7 +139,7 @@ m=[
     [0, 0, 0, 0, 0]
 ]
 
-n=[
+n = [
     [0, 1, 0, 0, 0, 1],
     [4, 0, 0, 3, 2, 0],
     [0, 0, 0, 0, 0, 0],
@@ -189,6 +147,5 @@ n=[
     [0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0]
 ]
-
-solution(m)
-solution(n)
+print(solution(m))
+print(solution(n))
