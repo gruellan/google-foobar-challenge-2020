@@ -5,8 +5,18 @@ import numpy as np
 
 
 def solution(m):
+    # Edge cases
+
+    assert len(m) == len(m[0])
+    assert len(m) >= 1
+
     # Get variables for calculation
     m, trans, absorbing = normalise_matrix(m)
+
+    # Another edge case
+    if len(absorbing) == 1:
+        return [1, 1]
+
     Q, R, I = get_q_r_i(m)
 
     # Perform calculations
@@ -14,6 +24,7 @@ def solution(m):
     F = inv(I_minus_Q)
     FR = np.matmul(F, R)
 
+    # print(FR)
     # Find lcm
     FR = FR[0]
     lcm = int(1 / reduce(gcd, FR))
@@ -93,14 +104,7 @@ def inv(m):
                 [-1 * m[1][0] / d, m[0][0] / d]]
 
     # Get matrix of cofactors
-    cofactors = []
-    for row in range(len(m)):
-        cofactors.append([])
-        for col in range(len(m)):
-            sign = (-1) ** (row + col)
-            minor = get_cofactor(m, row, col)
-
-            cofactors[row] = (sign * get_det(minor))
+    cofactors = get_cofactors(m)
 
     # Get adjugate
     cofactors = transpose(cofactors)
@@ -112,6 +116,24 @@ def inv(m):
     return cofactors
 
 
+def get_cofactors(m):
+    # Get minors matrix
+    minors = []
+    for row in range(len(m)):
+        new_row = []
+        for col in range(len(m[0])):
+            # Get sub matrix then get determinant from it
+            mat = [x[:col] + x[col + 1:] for x in (m[:row] + m[row + 1:])]
+            det = get_det(mat)
+
+            # Get cofactor
+            det *= (-1) ** (row + col)
+            new_row.append(det)
+        minors.append(new_row)
+
+    return minors
+
+
 def get_det(m):
     if len(m) == 2:
         return m[0][0] * m[1][1] - m[0][1] * m[1][0]
@@ -119,18 +141,18 @@ def get_det(m):
     det = 0
     for col in range(len(m)):
         sign = (-1) ** col
-        det += (sign * m[0][col] * get_det(get_cofactor(m, 0, col)))
+        cofactor = [row[: col] + row[col + 1:] for row in (m[: 0] + m[1:])]
+        det += (sign * m[0][col] * get_det(cofactor))
     return det
 
 
-def get_cofactor(m, a, b):
-    return [row[: b] + row[b + 1:] for row in (m[: a] + m[a + 1:])]
-
-
 def transpose(m):
+    count = 0
+    # Swap rows with cols
     for row in range(len(m)):
-        for col in range(len(m[0])):
-            m[col][row] = m[row][col]
+        for col in range(count, len(m[0])):
+            m[col][row], m[row][col] = m[row][col], m[col][row]
+        count += 1
     return m
 
 
@@ -150,5 +172,29 @@ n = [
     [0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0]
 ]
+
+o = [[1, 2, 3, 0, 0, 0], [4, 5, 6, 0, 0, 0], [7, 8, 9, 1, 0, 0],
+     [0, 0, 0, 0, 1, 2], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
+
+p = [[0, 86, 61, 189, 0, 18, 12, 33, 66, 39],
+     [0, 0, 2, 0, 0, 1, 0, 0, 0, 0],
+     [15, 187, 0, 0, 18, 23, 0, 0, 0, 0],
+     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 print(solution(m))
 print(solution(n))
+print(solution(o))
+print(solution(p))
+
+m = [[0, 0, 0, 0, 3, 5, 0, 0, 0, 2], [0, 0, 4, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 4, 4, 0, 0, 0, 1, 1], [13, 0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 1, 8, 7, 0, 0, 0, 1, 3, 0], [1, 7, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+print(solution(m))
+
+m = [[1, 1, 1, 0, 1, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 1, 1, 0, 1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 1, 1, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 0, 1, 1, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 1, 0, 1, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+print(solution(m))
+
+print(solution([[0]]))
