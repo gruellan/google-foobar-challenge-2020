@@ -3,6 +3,7 @@ from fractions import gcd
 from functools import reduce
 import numpy as np
 
+
 def solution(m):
     # Get variables for calculation
     m, trans, absorbing = normalise_matrix(m)
@@ -17,10 +18,8 @@ def solution(m):
     FR = FR[0]
     lcm = int(1 / reduce(gcd, FR))
 
-    # Add probabilities
+    # Convert to ints and add probabilities and lcm
     res = [int(x.numerator * lcm / x.denominator) for x in FR]
-
-    # Add lcm
     res.append(lcm)
 
     return res
@@ -38,39 +37,40 @@ def normalise_matrix(m):
 
         else:
             trans.append(row)
+
+            # Two identical for loops to prevent div by zero error
             for i in range(len(row)):
                 row[i] = frac(row[i], denom)
 
     return m, trans, absorbing
 
+
 def get_q_r_i(m):
-    Q = R = []
-    for i in range(len(m)):
-        if sum(m[i]) != 0:
-            row = []
-            for k in range(len(m[i])):
-                if sum(m[k]) != 0:
-                    row.append(m[i][k])
-            Q.append(row)
+    Q, R, I = [], [], []
 
-    R = []
-    for i in range(len(m)):
-        if sum(m[i]) != 0:
-            row = []
-            for j in range(len(m[0])):
-                if sum(m[j]) == 0:
-                    row.append(m[i][j])
-            R.append(row)
+    for row in range(len(m)):
+        if sum(m[row]) != 0:
+            # Get Q
+            new_row = []
+            for col in range(len(m[row])):
+                if sum(m[col]) != 0:
+                    new_row.append(m[row][col])
+            Q.append(new_row)
 
-    I = []
-    for i in range(len(Q)):
-        temp = []
-        for j in range(len(Q)):
-            if j == i:
-                temp.append(frac(1))
-            else:
-                temp.append(frac(0))
-        I.append(temp)
+            # Get R
+            new_row = []
+            for col in range(len(m[0])):
+                if sum(m[col]) == 0:
+                    new_row.append(m[row][col])
+            R.append(new_row)
+
+    # Get I
+    for row in range(len(Q)):
+        new_row = []
+        for col in range(len(Q)):
+            new_row.append(frac(col == row))
+        I.append(new_row)
+
     return Q, R, I
 
 
@@ -84,52 +84,55 @@ def subtract(a, b):
             res[i].append(a[i][j] - b[i][j])
     return res
 
-def transpose(m):
-    t = []
-    for r in range(len(m)):
-        tRow = []
-        for c in range(len(m[r])):
-            if c == r:
-                tRow.append(m[r][c])
-            else:
-                tRow.append(m[c][r])
-        t.append(tRow)
-    return t 
 
-def get_determinant(m):
+def inv(m):
+    d = get_det(m)
+
     if len(m) == 2:
-        return m[0][0]*m[1][1]-m[0][1]*m[1][0]
+        return [[m[1][1] / d, -1 * m[0][1] / d],
+                [-1 * m[1][0] / d, m[0][0] / d]]
+
+    # Get matrix of cofactors
+    cofactors = []
+    for row in range(len(m)):
+        cofactors.append([])
+        for col in range(len(m)):
+            sign = (-1) ** (row + col)
+            minor = get_cofactor(m, row, col)
+
+            cofactors[row] = (sign * get_det(minor))
+
+    # Get adjugate
+    cofactors = transpose(cofactors)
+
+    # Get adj / det
+    for r in range(len(cofactors)):
+        for c in range(len(cofactors)):
+            cofactors[r][c] = cofactors[r][c] / d
+    return cofactors
+
+
+def get_det(m):
+    if len(m) == 2:
+        return m[0][0] * m[1][1] - m[0][1] * m[1][0]
 
     det = 0
     for col in range(len(m)):
         sign = (-1) ** col
-        det += (sign * m[0][col] * get_determinant(get_cofactor(m, 0, col)))
+        det += (sign * m[0][col] * get_det(get_cofactor(m, 0, col)))
     return det
 
 
 def get_cofactor(m, a, b):
-    return [row[: b] + row[b+1:] for row in (m[: a] + m[a+1:])]
+    return [row[: b] + row[b + 1:] for row in (m[: a] + m[a + 1:])]
 
 
-def inv(m):
-    d=get_determinant(m)
+def transpose(m):
+    for row in range(len(m)):
+        for col in range(len(m[0])):
+            m[col][row] = m[row][col]
+    return m
 
-    if len(m) == 2:
-        return [[m[1][1]/d, -1*m[0][1]/d],
-                [-1*m[1][0]/d, m[0][0]/d]]
-    cofactors=[]
-    for r in range(len(m)):
-        row=[]
-        for c in range(len(m)):
-            minor=get_cofactor(m, r, c)
-            row.append(((-1)**(r+c)) * get_determinant(minor))
-        cofactors.append(row)
-    cofactors=transpose(cofactors)
-
-    for r in range(len(cofactors)):
-        for c in range(len(cofactors)):
-            cofactors[r][c]=cofactors[r][c]/d
-    return cofactors
 
 m = [
     [0, 2, 1, 0, 0],
