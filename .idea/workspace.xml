@@ -19,10 +19,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="28664841-85d9-41ff-9fdc-594e5477d57a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/level3-part2.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/level3-part1.py" beforeDir="false" afterPath="$PROJECT_DIR$/level3-part1.py" afterDir="false" />
-    </list>
+    <list default="true" id="28664841-85d9-41ff-9fdc-594e5477d57a" name="Default Changelist" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
