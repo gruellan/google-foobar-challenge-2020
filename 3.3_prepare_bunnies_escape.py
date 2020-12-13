@@ -46,14 +46,14 @@ def bfs(maze, start_x, start_y):
     possible_moves = [[1, 0], [-1, 0], [0, -1], [0, 1]]
 
     # Create maze of unvisited nodes
-    distances = [[None for _ in range(rows)] for _ in range(cols)]
+    distances = [[None for _ in range(cols)] for _ in range(rows)]
 
     # Set original distance as 1
     distances[start_x][start_y] = 1
-    queue = [(start_x, start_y, 1)]
+    queue = [(start_x, start_y)]
 
     while queue:
-        x, y, dist = queue.pop(0)
+        x, y = queue.pop(0)
 
         # Get all possible next moves
         all_nodes = [traverse(x, y, direction) for direction in possible_moves]
@@ -63,8 +63,10 @@ def bfs(maze, start_x, start_y):
             if 0 <= nx < rows and 0 <= ny < cols:
                 # If previously unvisited, mark node with the distance from source
                 if distances[nx][ny] is None:
-                    queue.append((nx, ny, dist))
                     distances[nx][ny] = distances[x][y] + 1
+                    if maze[nx][ny] == 1:
+                        continue
+                    queue.append((nx, ny))
 
     return distances
 
@@ -79,11 +81,12 @@ def solution(maze):
     finish = bfs(maze, rows - 1, cols - 1)
 
     # Loop until the matrices find their midway point
+    path = float("inf")
     for row in range(rows):
         for col in range(cols):
             if start[row][col] and finish[row][col]:
-                return min(start[row][col] + finish[row][col] - 1, float("inf"))
-    return None
+                path = min(start[row][col] + finish[row][col] - 1, path)
+    return path
 
 
 print(solution([[0, 1, 1, 0],
@@ -97,3 +100,19 @@ print(solution([[0, 0, 0, 0, 0, 0],
                 [0, 1, 1, 1, 1, 1],
                 [0, 1, 1, 1, 1, 1],
                 [0, 0, 0, 0, 0, 0]]))
+
+print(solution([[0, 1],
+                [1, 0]]))
+
+print(solution([[0, 1, 1, 0, 0],
+                [0, 1, 0, 1, 0],
+                [0, 0, 0, 1, 0]]))
+
+print(solution([[0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1],
+                [1, 1, 0, 0, 1],
+                [0, 0, 1, 0, 0],
+                ]))
+
+print(solution([[0, 1, 0, 1, 0, 0, 0],
+                [0, 0, 0, 1, 0, 1, 0]]))
