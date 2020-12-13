@@ -24,7 +24,6 @@ def solution(m):
     F = inv(I_minus_Q)
     FR = np.matmul(F, R)
 
-    # print(FR)
     # Find lcm
     FR = FR[0]
     lcm = int(1 / reduce(gcd, FR))
