@@ -6,17 +6,19 @@
 
 def solution(graph, time_limit):
     v = len(graph)
-    distances = [float("Inf")] * v
-    distances[0] = 0
+    distances = [[float("Inf") for _ in range(v)] for _ in range(v)]
 
     # Relax edges
-    for i in range(v - 1):
-        break
+    for i in range(v):
+        for _ in range(v - 1):
+            for vertex in range(v):
+                for edge in range(v):
+                    distances[vertex][vertex] = 0
+                    distances[i][edge] = min(distances[i][vertex] + graph[vertex][edge], distances[i][edge])
+
     # Identify negative cycles
     for i in graph:
         break
-
-    print(distances)
 
     print(distances)
 
