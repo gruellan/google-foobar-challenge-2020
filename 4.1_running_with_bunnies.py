@@ -25,8 +25,11 @@ def solution(graph, time_limit):
                     distances[i][edge] = min(distances[i][vertex] + graph[vertex][edge], distances[i][edge])
 
     # If there's a negative cycle, all bunnies are saved
-    if any([distances[i][i] < 0 for i in range(v)]):
-        return bunny_positions
+    for v in range(v):
+        for e in range(v):
+            if distances[0][v] + graph[v][e] < distances[0][e]:
+                # Not sure range(v-1) works, I thought it should be range(num_bunnies)?
+                return [x for x in range(v - 1)]
 
     # Check all path perms, starting with most bunnies saved to least saved
     # Brute force as max num of bunnies is only 5
@@ -44,7 +47,7 @@ def solution(graph, time_limit):
                 # Sort bunny IDs as specified in the problem spec
                 return [bunny - 1 for bunny in sorted(perm)]
 
-    return distances
+    return []
 
 
 if __name__ == '__main__':
@@ -55,3 +58,13 @@ if __name__ == '__main__':
         [9, 3, 2, 0, -1],
         [9, 3, 2, 2, 0],
     ], 1))
+    print("Should be:", [1, 2], "\n")
+
+    print(solution([
+        [0, 2, 2, 2, -1],
+        [9, 0, 2, 2, 0],
+        [9, 3, 0, 2, 0],
+        [9, 3, 2, 0, 0],
+        [-1, 3, 2, 2, 0]
+    ], -500))
+    print("Should be:", [0, 1, 2])
