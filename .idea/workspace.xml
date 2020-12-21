@@ -20,7 +20,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="28664841-85d9-41ff-9fdc-594e5477d57a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/h.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/4.1_running_with_bunnies.py" beforeDir="false" afterPath="$PROJECT_DIR$/4.1_running_with_bunnies.py" afterDir="false" />
     </list>
@@ -159,6 +158,10 @@
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="414" y="175" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1607430256600" />
+    <state x="640" y="256" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1608556702714">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="640" y="256" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.1040@0.0.1920.1040" timestamp="1608556702714" />
     <state x="461" y="165" key="SettingsEditor" timestamp="1607859067081">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
